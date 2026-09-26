@@ -1,0 +1,18 @@
+# .NET
+backend/**/bin/
+backend/**/obj/
+
+# Python
+ai-service/__pycache__/
+ai-service/**/__pycache__/
+ai-service/output/
+ai-service/.venv/
+
+# Node
+frontend/node_modules/
+frontend/.next/
+
+# Misc
+storage/
+*.log
+.DS_Store

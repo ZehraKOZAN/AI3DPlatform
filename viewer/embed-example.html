@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Ürün Sayfası – 3D Viewer Entegrasyon Örneği</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+</head>
+<body>
+  <h1>Örnek Ürün Sayfası</h1>
+
+  <h2>Yöntem 1: JavaScript SDK (önerilen)</h2>
+  <script src="./viewer.js"></script>
+  <div class="product-viewer"
+       data-product-id="00000000-0000-0000-0000-000000000000"
+       data-api-base="http://localhost:5000"
+       data-auto-rotate="true"
+       style="width: 600px; height: 450px;"></div>
+
+  <h2>Yöntem 2: iframe embed</h2>
+  <iframe
+      src="http://localhost:3001/embed/00000000-0000-0000-0000-000000000000"
+      width="600"
+      height="450"
+      frameborder="0">
+  </iframe>
+</body>
+</html>

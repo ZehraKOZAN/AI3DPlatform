@@ -1,0 +1,338 @@
+/*
+  Design tokens — merchant dashboard for a photo→3D pipeline.
+
+  Color: cool paper background, ink text, one "depth" accent (indigo-blue,
+  evoking a structured-light/3D scan line) rather than the default warm
+  cream+terracotta combo. Status colors are functional, not decorative.
+    --bg:        #F5F6F8   base canvas
+    --panel:     #FFFFFF   cards / surfaces
+    --ink:       #14171C   primary text
+    --ink-soft:  #5B6572   secondary text
+    --line:      #E2E4E9   hairline borders
+    --accent:    #3654FF   primary action / depth accent
+    --ready:     #1F9A6C   model ready
+    --processing:#C98A1F   generating
+    --failed:    #D64545   failed
+
+  Type: Space Grotesk for headlines (a geometric sans with slightly
+  mechanical terminals — reads as "measurement/CAD" without being a display
+  cliché), Inter for body/UI text and data.
+
+  Layout: fixed left rail (nav) + content canvas. Product cards use a
+  viewfinder-bracket motif on hover instead of soft drop shadows, signaling
+  "this becomes a 3D capture" rather than a generic SaaS card kit.
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap');
+
+:root {
+  --bg: #f5f6f8;
+  --panel: #ffffff;
+  --ink: #14171c;
+  --ink-soft: #5b6572;
+  --line: #e2e4e9;
+  --accent: #3654ff;
+  --accent-ink: #ffffff;
+  --ready: #1f9a6c;
+  --processing: #c98a1f;
+  --failed: #d64545;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+h1,
+h2,
+h3 {
+  font-family: 'Space Grotesk', 'Inter', system-ui, sans-serif;
+  font-weight: 600;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+a {
+  color: inherit;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.app-shell {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 100vh;
+}
+
+.sidebar {
+  border-right: 1px solid var(--line);
+  padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.sidebar-mark {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 17px;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.sidebar-mark span {
+  color: var(--accent);
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-nav a {
+  text-decoration: none;
+  color: var(--ink-soft);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 8px 10px;
+  border-radius: 6px;
+}
+
+.sidebar-nav a:hover {
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.content {
+  padding: 32px 40px;
+  max-width: 1080px;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 24px;
+}
+
+.page-header p {
+  color: var(--ink-soft);
+  margin: 4px 0 0;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-ink);
+  border: none;
+  padding: 9px 16px;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 13.5px;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border: 1px solid var(--line);
+  padding: 8px 15px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 13.5px;
+}
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.product-card {
+  position: relative;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  text-decoration: none;
+  color: var(--ink);
+  transition: border-color 0.15s ease;
+}
+
+.product-card:hover {
+  border-color: var(--accent);
+}
+
+/* Viewfinder-bracket accent on hover — a nod to 3D capture, not a shadow */
+.product-card::before,
+.product-card::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+  pointer-events: none;
+}
+
+.product-card::before {
+  top: 8px;
+  left: 8px;
+  border-right: none;
+  border-bottom: none;
+}
+
+.product-card::after {
+  bottom: 8px;
+  right: 8px;
+  border-left: none;
+  border-top: none;
+}
+
+.product-card:hover::before,
+.product-card:hover::after {
+  opacity: 1;
+}
+
+.product-thumb {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  background: #eef0f3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--ink-soft);
+  font-size: 12px;
+}
+
+.product-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.product-meta {
+  padding: 12px 14px 14px;
+}
+
+.product-meta h3 {
+  font-size: 14px;
+}
+
+.status-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  font-size: 12.5px;
+  color: var(--ink-soft);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ink-soft);
+}
+
+.status-dot.ready {
+  background: var(--ready);
+}
+.status-dot.processing {
+  background: var(--processing);
+}
+.status-dot.failed {
+  background: var(--failed);
+}
+
+.add-product-tile {
+  aspect-ratio: 4 / 3;
+  border: 1px dashed var(--line);
+  border-radius: 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: var(--ink-soft);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.add-product-tile:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.upload-zone {
+  border: 1px dashed var(--line);
+  border-radius: 6px;
+  padding: 32px;
+  text-align: center;
+  color: var(--ink-soft);
+  font-size: 13px;
+}
+
+.upload-zone.dragover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: #f0f2ff;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 20px;
+}
+
+.embed-code {
+  background: #f0f1f4;
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-family: 'SFMono-Regular', ui-monospace, monospace;
+  font-size: 12.5px;
+  overflow-x: auto;
+  white-space: pre;
+  color: var(--ink);
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+
+.field label {
+  font-size: 12.5px;
+  color: var(--ink-soft);
+  font-weight: 500;
+}
+
+.field input {
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 9px 11px;
+  font-size: 13.5px;
+  font-family: inherit;
+}
+
+.field input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
