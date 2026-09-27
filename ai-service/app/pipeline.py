@@ -135,9 +135,72 @@ class StubBackend(ReconstructionBackend):
         return box
 
 
+class TripoSRBackend(ReconstructionBackend):
+    """
+    Wraps the TripoSR single-image-to-3D model (VAST-AI-Research/TripoSR;
+    weights pulled from the Hugging Face Hub as stabilityai/TripoSR). Loaded
+    once, onto the GPU, when this backend is selected.
+
+    TripoSR is single-image only. In multi-image mode (several product
+    photos), only the first/front image is used — true multi-view fusion
+    isn't part of the base model. Good enough for a first real integration;
+    revisit if multi-view quality matters more than turnaround time.
+    """
+
+    def __init__(self, mesh_resolution: int = 256, chunk_size: int = 8192):
+        import torch
+        import rembg
+        from tsr.system import TSR  # provided by /opt/TripoSR, see Dockerfile
+
+        if not torch.cuda.is_available():
+            raise RuntimeError(
+                "TripoSR backend requires a CUDA GPU, but torch.cuda.is_available() "
+                "is False. Check the ai-service container actually has GPU access "
+                "(docker-compose.yml 'deploy.resources.reservations.devices'), or "
+                "set AI_MODEL_BACKEND=stub to fall back to the placeholder backend."
+            )
+
+        self.device = "cuda:0"
+        self.mesh_resolution = mesh_resolution
+
+        logger.info("Loading TripoSR weights from Hugging Face Hub (first run downloads ~1.5GB)...")
+        self.model = TSR.from_pretrained(
+            "stabilityai/TripoSR",
+            config_name="config.yaml",
+            weight_name="model.ckpt",
+        )
+        self.model.renderer.set_chunk_size(chunk_size)
+        self.model.to(self.device)
+        self.rembg_session = rembg.new_session()
+        logger.info("TripoSR model loaded on %s.", self.device)
+
+    def reconstruct(self, images: list[ProcessedImage]) -> trimesh.Trimesh:
+        import torch
+        from tsr.utils import remove_background, resize_foreground
+
+        # TripoSR expects a cleanly-segmented subject on a neutral background,
+        # not the raw product photo — run the same background-removal +
+        # recentring step its own reference pipeline (run.py) uses.
+        segmented = remove_background(images[0].image.convert("RGBA"), self.rembg_session)
+        segmented = resize_foreground(segmented, 0.85)
+
+        arr = np.array(segmented).astype(np.float32) / 255.0
+        arr = arr[:, :, :3] * arr[:, :, 3:4] + (1 - arr[:, :, 3:4]) * 0.5
+        model_input = Image.fromarray((arr * 255.0).astype(np.uint8))
+
+        with torch.no_grad():
+            scene_codes = self.model([model_input], device=self.device)
+        mesh = self.model.extract_mesh(scene_codes, resolution=self.mesh_resolution)[0]
+
+        # TripoSR outputs a vertex-colored (untextured) mesh — postprocess_mesh
+        # and optimize_texture both handle that fine (the latter just skips
+        # when there's no material.image to resize).
+        return mesh
+
+
 BACKENDS: dict[str, type[ReconstructionBackend]] = {
     "stub": StubBackend,
-    # "triposr": TripoSRBackend,        # TODO: implement when GPU infra is available
+    "triposr": TripoSRBackend,
     # "zero123plus": Zero123PlusBackend,  # TODO: implement for multi-view mode
 }
 

@@ -21,10 +21,19 @@ services:
       - "8000:8000"
     volumes:
       - ai-output:/data/output
+      - ai-hf-cache:/data/hf-cache
     environment:
+      AI_MODEL_BACKEND: "triposr"
       # Lower this for quick local testing with small/cropped screenshots;
       # keep it at 512 (or higher) for real product photos.
       AI_MIN_IMAGE_RESOLUTION: "512"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
 
   backend:
     build:
@@ -58,4 +67,5 @@ services:
 volumes:
   postgres-data:
   ai-output:
+  ai-hf-cache:
   backend-storage:
