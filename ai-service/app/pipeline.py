@@ -190,7 +190,11 @@ class TripoSRBackend(ReconstructionBackend):
 
         with torch.no_grad():
             scene_codes = self.model([model_input], device=self.device)
-        mesh = self.model.extract_mesh(scene_codes, resolution=self.mesh_resolution)[0]
+        mesh = self.model.extract_mesh(
+            scene_codes,
+            has_vertex_color=True,
+            resolution=self.mesh_resolution,
+        )[0]
 
         # TripoSR outputs a vertex-colored (untextured) mesh — postprocess_mesh
         # and optimize_texture both handle that fine (the latter just skips
@@ -215,9 +219,13 @@ def postprocess_mesh(mesh: trimesh.Trimesh, target_max_polygons: int) -> trimesh
     mesh.remove_degenerate_faces()
     mesh.fill_holes()
 
-    # Polygon reduction (only triggers on dense meshes from real backends;
-    # the stub's simple box is already far below the target)
-    if len(mesh.faces) > target_max_polygons:
+    # Polygon reduction — but NOT for vertex-colored meshes (TripoSR's output):
+    # trimesh's quadric decimation rebuilds geometry without carrying vertex
+    # colors along, so a "successful" simplify silently turns the model gray.
+    # Texture-mapped meshes (the stub's card) are unaffected by this and still
+    # get decimated when oversized.
+    has_vertex_colors = getattr(mesh.visual, "kind", None) == "vertex"
+    if len(mesh.faces) > target_max_polygons and not has_vertex_colors:
         mesh = mesh.simplify_quadric_decimation(target_max_polygons)
 
     return mesh
