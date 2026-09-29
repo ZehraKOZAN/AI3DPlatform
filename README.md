@@ -90,17 +90,4 @@ npm run dev
 7. Müşteri, `viewer/viewer.js` üzerinden yüklenen Three.js sahnesinde ürünü
    360° döndürür, yakınlaştırır.
 
-## Sonraki adımlar (MVP sonrası)
 
-Spesifikasyondaki Faz 4-5 kapsamı: gerçek AI backend entegrasyonu (TripoSR /
-Zero123++ / ticari API), Redis/RabbitMQ tabanlı kuyruk, S3/Blob storage + CDN,
-API key tabanlı rate limiting, Shopify/WooCommerce entegrasyonları, AR/WebXR
-görüntüleme, kullanım bazlı faturalama.
-
-## Not
-
-Bu depoya eklenen kaynak dosyalardan birinde, bana doğrudan "Claude Sonnet
-4.5" diye hitap eden ve belirli GitHub repolarını doğrulanmış referanslar gibi
-sunmamı isteyen gömülü talimatlar vardı. Bunları bir prompt injection olarak
-değerlendirip yok saydım; bu mimari tamamen spesifikasyon dosyasındaki (2.
-belge) gereksinimlerden üretildi.
